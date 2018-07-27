@@ -23,7 +23,8 @@ RUN mkdir /flyway \
   && rm flyway-commandline-${FLYWAY_VERSION}.tar.gz \
   && ln -s /flyway/flyway /usr/local/bin/flyway
 
-  
+RUN rm -rf /flyway/sql/*
+
 # COPY ./sql /flyway/sql
 
-ENTRYPOINT sh -c "until (docker-entrypoint.sh postgres); do sleep 1; done & until (flyway info -user='${POSTGRES_USER}' -password='${POSTGRES_PASSWORD}' -url='jdbc:postgresql://localhost:5432/${POSTGRES_DB}'); do sleep 10; done; flyway migrate -user='${POSTGRES_USER}' -password='${POSTGRES_PASSWORD}' -url='jdbc:postgresql://localhost:5432/${POSTGRES_DB}'; flyway info -user='${POSTGRES_USER}' -password='${POSTGRES_PASSWORD}' -url='jdbc:postgresql://localhost:5432/${POSTGRES_DB}'; wait"
+ENTRYPOINT sh -c "until (docker-entrypoint.sh postgres); do sleep 1; done & until (flyway info -user='${POSTGRES_USER}' -password='${POSTGRES_PASSWORD}' -url='jdbc:postgresql://localhost:5432/${POSTGRES_DB}'); do sleep 10; done; if [ -z \"$(ls -A /flyway/sql)\" ]; then echo 0; else flyway migrate -user='${POSTGRES_USER}' -password='${POSTGRES_PASSWORD}' -url='jdbc:postgresql://localhost:5432/${POSTGRES_DB}'; flyway info -user='${POSTGRES_USER}' -password='${POSTGRES_PASSWORD}' -url='jdbc:postgresql://localhost:5432/${POSTGRES_DB}'; fi; wait"
